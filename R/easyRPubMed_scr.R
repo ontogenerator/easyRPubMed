@@ -69,8 +69,8 @@ function(pubmedArticle,
   options(warn = -1)
   
   # initial check
-  # expected cols = 14
-  # "pmid", "doi", "title", "abstract", "year", "month", "day", "jabbrv", "journal", 
+  # expected cols = 15
+  # "pmid", "doi", "title", "abstract", "year", "month", "day", "pubtype", "jabbrv", "journal", 
   # "keywords", "lastname", "firstname", "address", "email" 
   
   # Global Check!
@@ -147,6 +147,15 @@ function(pubmedArticle,
       }))
     }
     
+    # Fetch publication type and collapse to single string
+    tmp.pubtype <- custom_grep(xml_data = tmp.article, tag = "PublicationType",
+                                format = "char")
+    if (length(tmp.pubtype) > 1) {
+      tmp.pubtype <- paste(tmp.pubtype, collapse = "; ")
+    } else if (length(tmp.pubtype) < 1) {
+      tmp.pubtype <- NA
+    }
+    
     # Fetch ID string
     tmp.paperID  <- custom_grep(xml_data = tmp.article, tag = "ArticleIdList", format = "char")
     if (is.null(tmp.paperID)) 
@@ -205,16 +214,17 @@ function(pubmedArticle,
     }, error = function(e) {NA})
     
     # vector with all unique fields extracted o far
-    tmp.resout <- c(pmid=tmp.PMID, 
-                    doi=tmp.DOI, 
-                    title=tmp.title,
-                    abstract=tmp.abstract,
+    tmp.resout <- c(pmid = tmp.PMID, 
+                    doi = tmp.DOI, 
+                    title = tmp.title,
+                    abstract = tmp.abstract,
                     year = as.vector(tmp.date[1]),
                     month = as.vector(tmp.date[2]),
                     day = as.vector(tmp.date[3]),
-                    jabbrv=tmp.jabbrv,
-                    journal=tmp.journal,
-                    keywords=tmp.keys)
+                    pubtype = tmp.pubtype,
+                    jabbrv = tmp.jabbrv,
+                    journal = tmp.journal,
+                    keywords = tmp.keys)
     
     # Slow part - authors
     tmp.authors <- custom_grep(xml_data = tmp.article, tag = "AuthorList", format = "char")
@@ -277,7 +287,7 @@ function(pubmedArticle,
     }
     
     # Final check and return
-    if (ncol(final.mat) != 14) {
+    if (ncol(final.mat) != 15) {
       final.mat <- NULL
     }
   }, error = function(e) {NULL}, 
