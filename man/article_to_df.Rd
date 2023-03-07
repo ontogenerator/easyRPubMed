@@ -49,7 +49,7 @@ try({
   #Get records
   BL_list <- EPMsamples$NUBL_1618$rec_lst
   cat(BL_list[[1]])
-  # cast PM recort to data.frame
+  # cast PM record to data.frame
   BL_df <- article_to_df(BL_list[[1]], max_chars = 0)
   print(BL_df)
 }, silent = TRUE)

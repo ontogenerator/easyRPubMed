@@ -42,7 +42,7 @@
 #'   #Get records
 #'   BL_list <- EPMsamples$NUBL_1618$rec_lst
 #'   cat(BL_list[[1]])
-#'   # cast PM recort to data.frame
+#'   # cast PM record to data.frame
 #'   BL_df <- article_to_df(BL_list[[1]], max_chars = 0)
 #'   print(BL_df)
 #' }, silent = TRUE)
@@ -69,9 +69,9 @@ function(pubmedArticle,
   options(warn = -1)
   
   # initial check
-  # expected cols = 15
-  # "pmid", "doi", "title", "abstract", "year", "month", "day", "pubtype", "jabbrv", "journal", 
-  # "keywords", "lastname", "firstname", "address", "email" 
+  # expected cols = 16
+  # "pmid", "doi", "title", "abstract", "year", "month", "day", "pubtype", "jabbrv", "journal",
+  # "issn", "keywords", "lastname", "firstname", "address", "email" 
   
   # Global Check!
   if (class(pubmedArticle) != "character" |
@@ -182,6 +182,14 @@ function(pubmedArticle,
     tmp.journal <- custom_grep(xml_data = tmp.article, tag = "Title", format = "char")
     tmp.journal <- ifelse(is.null(tmp.journal), NA, tmp.journal)
     
+    # Get ISSN
+    tmp.ISSN <- custom_grep(xml_data = tmp.article, tag = "ISSN", format = "char")
+    if (length(tmp.ISSN) > 1) {
+      tmp.ISSN <- paste(tmp.ISSN, collapse = "; ")
+    } else if (length(tmp.ISSN) < 1) {
+      tmp.ISSN <- NA
+    }
+    
     # Fetch Keywords ----MeshHeading
     tmp.keys <- tryCatch({
       if (getKeywords) {
@@ -224,6 +232,7 @@ function(pubmedArticle,
                     pubtype = tmp.pubtype,
                     jabbrv = tmp.jabbrv,
                     journal = tmp.journal,
+                    issn = tmp.ISSN,
                     keywords = tmp.keys)
     
     # Slow part - authors
@@ -287,7 +296,7 @@ function(pubmedArticle,
     }
     
     # Final check and return
-    if (ncol(final.mat) != 15) {
+    if (ncol(final.mat) != 16) {
       final.mat <- NULL
     }
   }, error = function(e) {NULL}, 
@@ -965,7 +974,7 @@ get_pubmed_ids_by_fulltitle <-
     return (out)
   }
   
-  stopwords <- easyPubMed::PubMed_stopwords
+  stopwords <- easyRPubMed::PubMed_stopwords
   keys <- strsplit(fulltitle, split = "[[:space:]]")[[1]]
   keys <- tolower(keys)
   keys <- keys[!keys %in% stopwords]
