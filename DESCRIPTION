@@ -7,7 +7,7 @@ Author: Damiano Fantini
 Maintainer: Vladislav Nachev <vladislav.nachev@charite.de>
 Description: Query NCBI Entrez and retrieve PubMed records in XML or text format. Process PubMed records by extracting and aggregating data from selected fields. A large number of records can be easily downloaded via this simple-to-use interface to the NCBI PubMed API.
 URL: https://www.data-pulse.com/dev_site/easypubmed/
-Depends: R(>= 3.1), utils, assertthat, dplyr, purrr, stringr, progressr
+Depends: R(>= 3.1), utils, assertthat, dplyr, purrr, stringr
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 LazyData: true

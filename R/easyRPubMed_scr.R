@@ -178,6 +178,11 @@ function(pubmedArticle,
     tmp.jabbrv  <- custom_grep(xml_data = tmp.article, tag = "ISOAbbreviation", format = "char")
     tmp.jabbrv <- ifelse(is.null(tmp.jabbrv), NA, tmp.jabbrv)
     
+    # Get Language
+    tmp.language <- custom_grep(xml_data = tmp.article, tag = "Language", format = "char") 
+    tmp.language <- substr(tmp.language, nchar(tmp.language) - 3 + 1, nchar(tmp.language)) 
+    tmp.language <- ifelse(is.null(tmp.language), NA, tmp.language)
+    
     # Get Title
     tmp.journal <- custom_grep(xml_data = tmp.article, tag = "Title", format = "char")
     tmp.journal <- ifelse(is.null(tmp.journal), NA, tmp.journal)
@@ -230,6 +235,7 @@ function(pubmedArticle,
                     month = as.vector(tmp.date[2]),
                     day = as.vector(tmp.date[3]),
                     pubtype = tmp.pubtype,
+                    language = tmp.language,
                     jabbrv = tmp.jabbrv,
                     journal = tmp.journal,
                     issn = tmp.ISSN,
@@ -296,7 +302,7 @@ function(pubmedArticle,
     }
     
     # Final check and return
-    if (ncol(final.mat) != 16) {
+    if (ncol(final.mat) != 17) {
       final.mat <- NULL
     }
   }, error = function(e) {NULL}, 

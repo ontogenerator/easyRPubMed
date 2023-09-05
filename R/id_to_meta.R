@@ -89,20 +89,17 @@ id_to_meta <- function(ids, api_key = NULL) {
 #' \dontrun{ 
 #'   # load libraries
 #'   library(tidyverse)
-#'   library(progressr) # for progress bar
 #'   data("EPMsamples")
 #'   #Get records
 #'   BL_list <- EPMsamples$NUBL_1618$rec_lst
 #'   #remove metadata on purpose for the example
 #'   BL_df <- BL_list |> 
-#'     map(\(article) easyRPubMed::article_to_df(article, max_chars = 0, getAuthors = FALSE)) |> 
+#'     map(\(article) easyRPubMed::article_to_df(article, max_chars = 0, getAuthors = FALSE), .progress = TRUE) |> 
 #'     list_rbind() |> 
 #'     select(pmid, doi)
 #'   # start batchwise process with a progressbar
-#'   with_progress({
 #'     res <- BL_df |> 
 #'     get_metadata(pmid, chunksize = 100, api_key = NULL)
-#'   })
 #'
 #' }
 #' @export
@@ -120,14 +117,9 @@ get_metadata <- function(tib, idcol, chunksize = 200, api_key = NULL) {
     
     ls_ids <- split(tib, f = tib$chunk) |> 
       purrr::map(\(ch) dplyr::pull(ch, {{ idcol }}))
-    p <- progressr::progressor(steps = n_chunks)
 
     return(
-      purrr::map(ls_ids, ~{
-        p()
-        # Sys.sleep(1)
-        id_to_meta(., api_key = api_key)
-      }, .progress = TRUE)
+      purrr::map(ls_ids, \(chunk) id_to_meta(chunk, api_key = api_key), .progress = TRUE)
     )
   } else {
     return(id_to_meta(tib |> dplyr::pull({{ idcol }}), api_key = api_key))
