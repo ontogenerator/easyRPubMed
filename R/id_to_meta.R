@@ -8,6 +8,9 @@
 #' @usage id_to_meta(ids, api_key = NULL)
 #'                     
 #' @param ids Vector including one or more DOIs or PMIDs.
+#' @param max_chars Numeric (integer). Maximum number of characters to be extracted from
+#' the Article Abstract field. Set max_chars to -1 for extracting the full-length abstract.
+#' Set max_chars to 0 to extract no abstract.
 #' @param api_key String (character vector of length 1): user-specific API key to increase 
 #' the limit of queries per second. You can obtain your key from NCBI.
 
@@ -30,7 +33,7 @@
 #'
 #' @export
 
-id_to_meta <- function(ids, api_key = NULL) {
+id_to_meta <- function(ids, max_chars = -1, api_key = NULL) {
   
   if (stringr::str_detect(ids[1], "^10\\.")) {
     id_type = "[DOI]"
@@ -46,7 +49,7 @@ id_to_meta <- function(ids, api_key = NULL) {
   
   results <- fetch_pubmed_data(search_by_id) |>
     articles_to_list() |>
-    purrr::map(\(pubmedArticle) article_to_df(pubmedArticle, max_chars = 50, getKeywords = FALSE,
+    purrr::map(\(pubmedArticle) article_to_df(pubmedArticle, max_chars = max_chars, getKeywords = FALSE,
                                            getAuthors = FALSE)) |>
     purrr::list_rbind() |> 
     dplyr::select(-keywords, -lastname, -firstname, -address, -email)
@@ -71,6 +74,9 @@ id_to_meta <- function(ids, api_key = NULL) {
 #' @param idcol Name of column inside data frame including one or more DOIs or PMIDs.
 #' @param chunksize Size of the chunks (number of articles) to be fetched in each query. As the
 #' query string has an upper limit in its size, the currently allowed maximum chunk size is set to 200.
+#' @param max_chars Numeric (integer). Maximum number of characters to be extracted from
+#' the Article Abstract field. Set max_chars to -1 for extracting the full-length abstract.
+#' Set max_chars to 0 to extract no abstract.
 #' @param api_key String (character vector of length 1): user-specific API key to increase 
 #' the limit of queries per second. You can obtain your key from NCBI.
 
@@ -104,7 +110,7 @@ id_to_meta <- function(ids, api_key = NULL) {
 #' }
 #' @export
 
-get_metadata <- function(tib, idcol, chunksize = 200, api_key = NULL) {
+get_metadata <- function(tib, idcol, chunksize = 200, max_chars = -1, api_key = NULL) {
   
   assertthat::assert_that(chunksize <= 200, msg = "Chunksize should not exeed 200!")
   
@@ -119,7 +125,8 @@ get_metadata <- function(tib, idcol, chunksize = 200, api_key = NULL) {
       purrr::map(\(ch) dplyr::pull(ch, {{ idcol }}))
 
     return(
-      purrr::map(ls_ids, \(chunk) id_to_meta(chunk, api_key = api_key), .progress = TRUE)
+      purrr::map(ls_ids, \(chunk) id_to_meta(chunk, max_chars = max_chars, api_key = api_key),
+                 .progress = TRUE)
     )
   } else {
     return(id_to_meta(tib |> dplyr::pull({{ idcol }}), api_key = api_key))
