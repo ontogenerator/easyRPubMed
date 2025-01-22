@@ -14,6 +14,15 @@ get_metadata(tib, idcol, chunksize = 200, api_key = NULL)
 \item{chunksize}{Size of the chunks (number of articles) to be fetched in each query. As the
 query string has an upper limit in its size, the currently allowed maximum chunk size is set to 200.}
 
+\item{max_chars}{Numeric (integer). Maximum number of characters to be extracted from
+the Article Abstract field. Set max_chars to -1 for extracting the full-length abstract.
+Set max_chars to 0 to extract no abstract.}
+
+\item{get_keywords}{Logical. If TRUE, an attempt to extract article Keywords will be made.}
+
+\item{get_authors}{Logical. If FALSE, author information won't be extracted. This will considerably 
+speed up the operation.}
+
 \item{api_key}{String (character vector of length 1): user-specific API key to increase 
 the limit of queries per second. You can obtain your key from NCBI.}
 }
@@ -36,20 +45,17 @@ publication type, journal name (title, abbreviation), and ISSN.
 \dontrun{ 
   # load libraries
   library(tidyverse)
-  library(progressr) # for progress bar
   data("EPMsamples")
   #Get records
   BL_list <- EPMsamples$NUBL_1618$rec_lst
   #remove metadata on purpose for the example
   BL_df <- BL_list |> 
-    map(\(article) easyRPubMed::article_to_df(article, max_chars = 0, getAuthors = FALSE)) |> 
+    map(\(article) easyRPubMed::article_to_df(article, max_chars = 0, getAuthors = FALSE), .progress = TRUE) |> 
     list_rbind() |> 
     select(pmid, doi)
   # start batchwise process with a progressbar
-  with_progress({
     res <- BL_df |> 
     get_metadata(pmid, chunksize = 100, api_key = NULL)
-  })
 
 }
 }

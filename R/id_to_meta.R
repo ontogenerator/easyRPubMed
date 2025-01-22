@@ -11,6 +11,10 @@
 #' @param max_chars Numeric (integer). Maximum number of characters to be extracted from
 #' the Article Abstract field. Set max_chars to -1 for extracting the full-length abstract.
 #' Set max_chars to 0 to extract no abstract.
+#' @param get_keywords Logical. If TRUE, an attempt to extract article Keywords will be made.
+#' @param get_authors Logical. If FALSE, author information won't be extracted. This will considerably 
+#' speed up the operation.
+
 #' @param api_key String (character vector of length 1): user-specific API key to increase 
 #' the limit of queries per second. You can obtain your key from NCBI.
 
@@ -33,8 +37,8 @@
 #'
 #' @export
 
-id_to_meta <- function(ids, max_chars = -1, api_key = NULL) {
-  
+id_to_meta <- function(ids, max_chars = -1, get_authors = FALSE, get_keywords = FALSE, api_key = NULL) {
+
   if (stringr::str_detect(ids[1], "^10\\.")) {
     id_type = "[DOI]"
   } else {
@@ -49,11 +53,19 @@ id_to_meta <- function(ids, max_chars = -1, api_key = NULL) {
   
   results <- fetch_pubmed_data(search_by_id) |>
     articles_to_list() |>
-    purrr::map(\(pubmedArticle) article_to_df(pubmedArticle, max_chars = max_chars, getKeywords = FALSE,
-                                           getAuthors = FALSE)) |>
-    purrr::list_rbind() |> 
-    dplyr::select(-keywords, -lastname, -firstname, -address, -email)
-    
+    purrr::map(\(pubmedArticle) article_to_df(pubmedArticle, max_chars = max_chars, getKeywords = get_keywords,
+                                           getAuthors = get_authors)) |>
+    purrr::list_rbind() 
+  
+  if (get_keywords == FALSE) {
+    results <- results |> 
+      dplyr::select(-keywords)
+  } 
+  
+  if (get_authors == FALSE) {
+    results <- results |> 
+      dplyr::select(-lastname, -firstname, -address, -email)
+  } 
   
   results |>
     dplyr::mutate(pmid = as.numeric(pmid),
@@ -77,6 +89,9 @@ id_to_meta <- function(ids, max_chars = -1, api_key = NULL) {
 #' @param max_chars Numeric (integer). Maximum number of characters to be extracted from
 #' the Article Abstract field. Set max_chars to -1 for extracting the full-length abstract.
 #' Set max_chars to 0 to extract no abstract.
+#' @param get_keywords Logical. If TRUE, an attempt to extract article Keywords will be made.
+#' @param get_authors Logical. If FALSE, author information won't be extracted. This will considerably 
+#' speed up the operation.
 #' @param api_key String (character vector of length 1): user-specific API key to increase 
 #' the limit of queries per second. You can obtain your key from NCBI.
 
@@ -110,7 +125,7 @@ id_to_meta <- function(ids, max_chars = -1, api_key = NULL) {
 #' }
 #' @export
 
-get_metadata <- function(tib, idcol, chunksize = 200, max_chars = -1, api_key = NULL) {
+get_metadata <- function(tib, idcol, chunksize = 200, max_chars = -1, get_keywords = FALSE, get_authors = FALSE, api_key = NULL) {
   
   assertthat::assert_that(chunksize <= 200, msg = "Chunksize should not exeed 200!")
   
@@ -129,7 +144,8 @@ get_metadata <- function(tib, idcol, chunksize = 200, max_chars = -1, api_key = 
                  .progress = TRUE)
     )
   } else {
-    return(id_to_meta(tib |> dplyr::pull({{ idcol }}), api_key = api_key))
+    return(id_to_meta(tib |> dplyr::pull({{ idcol }}),
+                      max_chars = max_chars, get_authors = get_authors, get_keywords = get_keywords, api_key = api_key))
     
   } 
   

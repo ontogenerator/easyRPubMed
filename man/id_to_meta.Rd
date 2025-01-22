@@ -9,6 +9,15 @@ id_to_meta(ids, api_key = NULL)
 \arguments{
 \item{ids}{Vector including one or more DOIs or PMIDs.}
 
+\item{max_chars}{Numeric (integer). Maximum number of characters to be extracted from
+the Article Abstract field. Set max_chars to -1 for extracting the full-length abstract.
+Set max_chars to 0 to extract no abstract.}
+
+\item{get_authors}{Logical. If FALSE, author information won't be extracted. This will considerably 
+speed up the operation.}
+
+\item{get_keywords}{Logical. If TRUE, an attempt to extract article Keywords will be made.}
+
 \item{api_key}{String (character vector of length 1): user-specific API key to increase 
 the limit of queries per second. You can obtain your key from NCBI.}
 }
