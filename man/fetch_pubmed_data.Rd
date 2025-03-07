@@ -45,6 +45,7 @@ retmax parameter (1 < retmax < 5000). Data will be downloaded on the fly (no fil
 locally).
 }
 \examples{
+\dontrun{
 try({ 
   ## Example 01: retrieve data in TXT format
   library("easyPubMed")
@@ -56,7 +57,7 @@ try({
   cat(paste(dami_papers[1:65], collapse = ""))
 }, silent = TRUE)
 
-\dontrun{
+
 ## Example 02: retrieve data in XML format
 library("easyPubMed")
 dami_query_string <- "Damiano Fantini[AU]"

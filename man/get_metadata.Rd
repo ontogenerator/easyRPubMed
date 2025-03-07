@@ -2,44 +2,55 @@
 % Please edit documentation in R/id_to_meta.R
 \name{get_metadata}
 \alias{get_metadata}
-\title{Fetch and Extract Data Batchwise from a Data Frame Containing DOIs or PMIDs}
+\title{Fetch and Extract Data Batchwise from a Data Frame Containing DOIs or
+PMIDs}
 \usage{
-get_metadata(tib, idcol, chunksize = 200, api_key = NULL)
+get_metadata(tib, idcol, chunksize = 200, max_chars = -1,
+get_keywords = FALSE, get_authors = FALSE, api_key = NULL)
 }
 \arguments{
 \item{tib}{Data frame containing source data.}
 
-\item{idcol}{Name of column inside data frame including one or more DOIs or PMIDs.}
+\item{idcol}{Name of column inside data frame including one or more DOIs or
+PMIDs.}
 
-\item{chunksize}{Size of the chunks (number of articles) to be fetched in each query. As the
-query string has an upper limit in its size, the currently allowed maximum chunk size is set to 200.}
+\item{chunksize}{Size of the chunks (number of articles) to be fetched in
+each query. As the query string has an upper limit in its size, the currently
+allowed maximum chunk size is set to 200.}
 
-\item{max_chars}{Numeric (integer). Maximum number of characters to be extracted from
-the Article Abstract field. Set max_chars to -1 for extracting the full-length abstract.
-Set max_chars to 0 to extract no abstract.}
+\item{max_chars}{Numeric (integer). Maximum number of characters to be
+extracted from the Article Abstract field. Set max_chars to -1 for extracting
+the full-length abstract. Set max_chars to 0 to extract no abstract.}
 
-\item{get_keywords}{Logical. If TRUE, an attempt to extract article Keywords will be made.}
+\item{get_keywords}{Logical. If TRUE, an attempt to extract article Keywords
+will be made.}
 
-\item{get_authors}{Logical. If FALSE, author information won't be extracted. This will considerably 
-speed up the operation.}
+\item{get_authors}{Logical. If FALSE, author information won't be extracted.
+This will considerably speed up the operation and the output will have a
+single row per record. Otherwise the output will have a single row per author
+per record.}
 
-\item{api_key}{String (character vector of length 1): user-specific API key to increase 
-the limit of queries per second. You can obtain your key from NCBI.}
+\item{api_key}{String (character vector of length 1): user-specific API key
+to increase the limit of queries per second. You can obtain your key from
+NCBI.}
 }
 \value{
-A list of data frames including the extracted features. Each element but the last has row numbers equal
-to the chunksize.
+A list of data frames including the extracted features.
+Each element but the last has row numbers equal to the chunksize.
 }
 \description{
-Extract publication-specific information from a vector of DOIs or PMIDs. 
-The input records are given as a character-class vector.
+Extract publication-specific information from a vector of DOIs
+or PMIDs. The input records are given as a character-class vector.
 Data are returned as a data frame where each row corresponds 
-to a single record. All records are assumed to be of the same type, either DOI or PMID.
+to a single record or to a single author per record.
+All records are assumed to be of the same type, either DOI or PMID.
 }
 \details{
-For each DOI or PMID in the source data frame, this function will automatically fetch and extract a set of features. 
-Extracted information include: PMID, DOI, article title, article abstract, publication date (year, month, day), 
-publication type, journal name (title, abbreviation), and ISSN.
+For each DOI or PMID in the source data frame, this function will
+automatically fetch and extract a set of features. Extracted information
+include: PMID, DOI, article title, article abstract,
+publication date (year, month, day),  publication type, 
+journal name (title, abbreviation), and ISSN.
 }
 \examples{
 \dontrun{ 
@@ -50,7 +61,8 @@ publication type, journal name (title, abbreviation), and ISSN.
   BL_list <- EPMsamples$NUBL_1618$rec_lst
   #remove metadata on purpose for the example
   BL_df <- BL_list |> 
-    map(\(article) easyRPubMed::article_to_df(article, max_chars = 0, getAuthors = FALSE), .progress = TRUE) |> 
+    map(\(article) easyRPubMed::article_to_df(article,
+     max_chars = 0, getAuthors = FALSE), .progress = TRUE) |> 
     list_rbind() |> 
     select(pmid, doi)
   # start batchwise process with a progressbar

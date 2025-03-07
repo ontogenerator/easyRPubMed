@@ -69,12 +69,12 @@ function(pubmedArticle,
   options(warn = -1)
   
   # initial check
-  # expected cols = 16
-  # "pmid", "doi", "title", "abstract", "year", "month", "day", "pubtype", "jabbrv", "journal",
-  # "issn", "keywords", "lastname", "firstname", "address", "email" 
+  # expected cols = 18
+  # "pmid", "doi", "title", "abstract", "year", "month", "day", "pages", "pubtype", "language",
+  # "jabbrv", "journal", "issn", "keywords", "lastname", "firstname", "address", "email" 
   
   # Global Check!
-  if (class(pubmedArticle) != "character" |
+  if (!inherits(pubmedArticle, "character") |
       regexpr("(<PubmedArticle)(.+)(\\/PubmedArticle>)", pubmedArticle) < 0 )
   {
     message("An error occurred")
@@ -187,6 +187,10 @@ function(pubmedArticle,
     tmp.journal <- custom_grep(xml_data = tmp.article, tag = "Title", format = "char")
     tmp.journal <- ifelse(is.null(tmp.journal), NA, tmp.journal)
     
+    # Get MedlinePgn (pagination)
+    tmp.MedlinePgn <- custom_grep(xml_data = tmp.article, tag = "MedlinePgn", format = "char")
+    tmp.MedlinePgn <- ifelse(is.null(tmp.MedlinePgn), NA, tmp.MedlinePgn)
+    
     # Get ISSN
     tmp.ISSN <- custom_grep(xml_data = tmp.article, tag = "ISSN", format = "char")
     if (length(tmp.ISSN) > 1) {
@@ -234,6 +238,7 @@ function(pubmedArticle,
                     year = as.vector(tmp.date[1]),
                     month = as.vector(tmp.date[2]),
                     day = as.vector(tmp.date[3]),
+                    pages = tmp.MedlinePgn,
                     pubtype = tmp.pubtype,
                     language = tmp.language,
                     jabbrv = tmp.jabbrv,
@@ -302,7 +307,7 @@ function(pubmedArticle,
     }
     
     # Final check and return
-    if (ncol(final.mat) != 17) {
+    if (ncol(final.mat) != 18) {
       final.mat <- NULL
     }
   }, error = function(e) {NULL}, 
@@ -785,6 +790,7 @@ fetch_all_pubmed_ids <-
 #' \url{https://www.ncbi.nlm.nih.gov/books/NBK25499/table/chapter4.T._valid_values_of__retmode_and/}
 #'
 #' @examples
+#' \dontrun{
 #' try({ 
 #'   ## Example 01: retrieve data in TXT format
 #'   library("easyPubMed")
@@ -796,7 +802,7 @@ fetch_all_pubmed_ids <-
 #'   cat(paste(dami_papers[1:65], collapse = ""))
 #' }, silent = TRUE)
 #' 
-#' \dontrun{
+#' 
 #' ## Example 02: retrieve data in XML format
 #' library("easyPubMed")
 #' dami_query_string <- "Damiano Fantini[AU]"
@@ -893,7 +899,7 @@ fetch_pubmed_data <-
       
       # Check if error
       if (!is.null(out.data) && 
-          class(out.data) == "character" &&
+          inherits(out.data, "character") &&
           grepl("<ERROR>", substr(paste(utils::head(out.data, n = 100), collapse = ""), 1, 250))) {
           # message(out.data)
         out.data <- NULL
@@ -1288,7 +1294,7 @@ table_articles_byAuth <-
   }))
   papers.authors.df <- papers.authors.df[keep.rw, ]
   if (!is.null(dest_file)) {
-    if (class(dest_file) == "character" & length(dest_file) == 1) {
+    if (inherits(dest_file, "character") & length(dest_file) == 1) {
       tryCatch(utils::write.table(papers.authors.df, dest_file, fileEncoding = encoding), 
                error = function(e) {
                  NULL
