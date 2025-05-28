@@ -135,10 +135,11 @@ id_to_meta <- function(ids, max_chars = -1, get_authors = FALSE,
 #'   #remove metadata on purpose for the example
 #'   BL_df <- BL_list |> 
 #'     map(\(article) easyRPubMed::article_to_df(article,
-#'      max_chars = 0, getAuthors = FALSE), .progress = TRUE) |> 
+#'      max_chars = 0, getAuthors = FALSE)) |> 
 #'     list_rbind() |> 
 #'     select(pmid, doi)
 #'   # start batchwise process with a progressbar
+#'   progressr::handlers(global = TRUE)
 #'     res <- BL_df |> 
 #'     get_metadata(pmid, chunksize = 100, api_key = NULL)
 #'
@@ -164,12 +165,15 @@ get_metadata <- function(tib, idcol, chunksize = 200, max_chars = -1,
     
     ls_ids <- split(tib, f = tib$chunk) |> 
       purrr::map(\(ch) dplyr::pull(ch, {{ idcol }}))
+    p <- progressr::progressor(along = ls_ids)
 
     return(
-      purrr::map(ls_ids, \(chunk) id_to_meta(chunk,
-                                             max_chars = max_chars,
-                                             api_key = api_key),
-                 .progress = TRUE)
+      purrr::map(ls_ids, \(chunk) {
+        p()
+        id_to_meta(chunk,
+                   max_chars = max_chars,
+                   api_key = api_key)
+      })
     )
   } else {
     return(id_to_meta(tib |> dplyr::pull({{ idcol }}),

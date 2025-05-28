@@ -16,4 +16,5 @@ RoxygenNote: 7.3.2
 NeedsCompilation: no
 Packaged: 2023-02-15 08:24:59 UTC; vn
 Imports: 
+    progressr,
     tidyr
