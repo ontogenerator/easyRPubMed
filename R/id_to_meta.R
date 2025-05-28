@@ -206,7 +206,7 @@ get_metadata <- function(tib, idcol, chunksize = 200, max_chars = -1,
 #' @import dplyr tidyr
 #' 
 #' @export
-collapse_authors <- function(tib, sep_author = "; ", sep_address = "|") {
+collapse_authors <- function(tib, sep_author = " and ", sep_address = ";  ") {
   
   pmid <- doi <- lastname <- firstname <- author <- address <- NULL
   
