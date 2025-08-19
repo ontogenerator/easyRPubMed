@@ -62,10 +62,11 @@ journal name (title, abbreviation), and ISSN.
   #remove metadata on purpose for the example
   BL_df <- BL_list |> 
     map(\(article) easyRPubMed::article_to_df(article,
-     max_chars = 0, getAuthors = FALSE), .progress = TRUE) |> 
+     max_chars = 0, getAuthors = FALSE)) |> 
     list_rbind() |> 
     select(pmid, doi)
   # start batchwise process with a progressbar
+  progressr::handlers(global = TRUE)
     res <- BL_df |> 
     get_metadata(pmid, chunksize = 100, api_key = NULL)
 
